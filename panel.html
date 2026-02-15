@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>🌍 Battle - Level Panel</title>
+  <link rel="stylesheet" href="panel.css" />
+</head>
+<body>
+  <h1>🌍 Battle Level Generator</h1>
+
+  <p>
+    Generates a 10×10 level (2 🌍 per row/col/region, no touching even diagonally).<br>
+    Auto-downloads <code>lvlX.json</code> and <code>lvlX_solution.png</code>.
+    Move the JSON into <code>/levels/</code> and commit it.
+  </p>
+
+  <div class="row">
+    <label>
+      Difficulty (1–10):
+      <input id="difficulty" type="number" min="1" max="10" value="5" />
+    </label>
+
+    <label>
+      Level number (filename lvlX.json):
+      <input id="levelNumber" type="number" min="1" value="1" />
+    </label>
+  </div>
+
+  <div class="row">
+    <button id="btnGenerate">Generate + Download</button>
+    <button id="btnCopy" disabled>Copy JSON</button>
+  </div>
+
+  <pre id="status" aria-live="polite">Idle.</pre>
+
+  <label>
+    JSON output:
+    <textarea id="jsonOut" rows="18" spellcheck="false" placeholder="Generated JSON will appear here..."></textarea>
+  </label>
+
+  <script type="module">
+    import { generateLevel, stringifyLevel, validateLevel } from './generator.js';
+
+    const $ = (id) => document.getElementById(id);
+
+    const difficultyEl = $('difficulty');
+    const levelNumberEl = $('levelNumber');
+    const btnGenerate = $('btnGenerate');
+    const btnCopy = $('btnCopy');
+    const statusEl = $('status');
+    const jsonOut = $('jsonOut');
+
+    function setStatus(text) {
+      statusEl.textContent = text;
+    }
+
+    function downloadText(filename, text) {
+      const blob = new Blob([text], { type: "application/json;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      URL.revokeObjectURL(url);
+    }
+
+    function downloadBlob(filename, blob) {
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      URL.revokeObjectURL(url);
+    }
+
+    function generateSolutionPNG(level) {
+      // Render: grid + region borders + 🌍 solution
+      const size = 700;
+      const n = level.n;
+      const cell = size / n;
+
+      const canvas = document.createElement("canvas");
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext("2d");
+
+      // background
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, size, size);
+
+      // thin grid lines
+      ctx.strokeStyle = "#000000";
+      ctx.lineWidth = 1;
+
+      for (let i = 0; i <= n; i++) {
+        const x = i * cell;
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, size);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(0, x);
+        ctx.lineTo(size, x);
+        ctx.stroke();
+      }
+
+      // region borders thicker
+      ctx.lineWidth = 4;
+      for (let r = 0; r < n; r++) {
+        for (let c = 0; c < n; c++) {
+          const rid = level.regions[r][c];
+
+          if (r === 0 || level.regions[r - 1][c] !== rid) {
+            ctx.beginPath();
+            ctx.moveTo(c * cell, r * cell);
+            ctx.lineTo((c + 1) * cell, r * cell);
+            ctx.stroke();
+          }
+          if (c === 0 || level.regions[r][c - 1] !== rid) {
+            ctx.beginPath();
+            ctx.moveTo(c * cell, r * cell);
+            ctx.lineTo(c * cell, (r + 1) * cell);
+            ctx.stroke();
+          }
+          if (r === n - 1 || level.regions[r + 1][c] !== rid) {
+            ctx.beginPath();
+            ctx.moveTo(c * cell, (r + 1) * cell);
+            ctx.lineTo((c + 1) * cell, (r + 1) * cell);
+            ctx.stroke();
+          }
+          if (c === n - 1 || level.regions[r][c + 1] !== rid) {
+            ctx.beginPath();
+            ctx.moveTo((c + 1) * cell, r * cell);
+            ctx.lineTo((c + 1) * cell, (r + 1) * cell);
+            ctx.stroke();
+          }
+        }
+      }
+
+      // draw solution globes
+      ctx.font = `${cell * 0.62}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      for (let r = 0; r < n; r++) {
+        for (let c = 0; c < n; c++) {
+          if (level.solution?.[r]?.[c] === 1) {
+            ctx.fillText("🌍", c * cell + cell / 2, r * cell + cell / 2);
+          }
+        }
+      }
+
+      return new Promise((resolve) => {
+        canvas.toBlob((blob) => resolve(blob), "image/png");
+      });
+    }
+
+    btnGenerate.addEventListener('click', async () => {
+      btnGenerate.disabled = true;
+      btnCopy.disabled = true;
+      jsonOut.value = '';
+
+      const requestedDifficulty = Math.max(1, Math.min(10, Number(difficultyEl.value || 5)));
+      const levelNumber = Math.max(1, Number(levelNumberEl.value || 1));
+
+      setStatus(`Generating… requested difficulty ${requestedDifficulty}.`);
+
+      try {
+        const { level, stats } = await generateLevel({
+          requestedDifficulty,
+          levelNumber,
+          onProgress: (p) => {
+            setStatus(
+              `Attempt ${p.attempt}/${p.maxAttempts}… best so far: ` +
+              `difficulty ${p.bestEstimatedDifficulty} (Δ=${p.bestDelta}), ` +
+              `solvable=${p.bestSolvable}, unique=${p.bestUnique}`
+            );
+          }
+        });
+
+        const check = validateLevel(level);
+        if (!check.solvable) {
+          throw new Error("Generated an unsolvable level (should be impossible).");
+        }
+
+        const json = stringifyLevel(level);
+        jsonOut.value = json;
+
+        const jsonName = `lvl${levelNumber}.json`;
+        downloadText(jsonName, json);
+
+        const pngBlob = await generateSolutionPNG(level);
+        downloadBlob(`lvl${levelNumber}_solution.png`, pngBlob);
+
+        btnCopy.disabled = false;
+
+        setStatus(
+          `Done.\n` +
+          `Requested: ${requestedDifficulty}\n` +
+          `Estimated: ${level.difficulty}\n` +
+          `Solvable: ${check.solvable}\n` +
+          `Unique: ${check.unique}\n` +
+          `Solutions found (capped): ${check.solutions}\n` +
+          `Solver nodes: ${check.nodes}\n` +
+          `Attempts: ${stats.attempts}\n\n` +
+          `Downloaded: ${jsonName} + lvl${levelNumber}_solution.png\n` +
+          `Move JSON into: /levels/${jsonName} and commit.`
+        );
+      } catch (err) {
+        console.error(err);
+        setStatus(`Failed: ${err?.message || String(err)}`);
+      } finally {
+        btnGenerate.disabled = false;
+      }
+    });
+
+    btnCopy.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(jsonOut.value);
+        setStatus(statusEl.textContent + `\n\nCopied to clipboard.`);
+      } catch {
+        setStatus(statusEl.textContent + `\n\nCopy failed. Select and copy manually like it’s 1998.`);
+      }
+    });
+  </script>
+</body>
+</html>

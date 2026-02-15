@@ -1,0 +1,21 @@
+{
+  "name": "games.marfeyx.github.io",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/marfeyx/games.marfeyx.github.io.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/marfeyx/games.marfeyx.github.io/issues"
+  },
+  "homepage": "https://github.com/marfeyx/games.marfeyx.github.io#readme"
+}
