@@ -1,0 +1,5 @@
+C:\Users\jakob trost\OneDrive\Dokumente\games.marfeyx.github.io\Generator\Globes.Levelgenerator\Globes.Levelgenerator\obj\Debug\net8.0-windows\Globes.Levelgenerator.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\jakob trost\OneDrive\Dokumente\games.marfeyx.github.io\Generator\Globes.Levelgenerator\Globes.Levelgenerator\obj\Debug\net8.0-windows\Globes.Levelgenerator.AssemblyInfoInputs.cache
+C:\Users\jakob trost\OneDrive\Dokumente\games.marfeyx.github.io\Generator\Globes.Levelgenerator\Globes.Levelgenerator\obj\Debug\net8.0-windows\Globes.Levelgenerator.AssemblyInfo.cs
+C:\Users\jakob trost\OneDrive\Dokumente\games.marfeyx.github.io\Generator\Globes.Levelgenerator\Globes.Levelgenerator\obj\Debug\net8.0-windows\Globes.Levelgenerator.csproj.CoreCompileInputs.cache
+C:\Users\jakob trost\OneDrive\Dokumente\games.marfeyx.github.io\Generator\Globes.Levelgenerator\Globes.Levelgenerator\obj\Debug\net8.0-windows\Globes.Levelgenerator.sourcelink.json

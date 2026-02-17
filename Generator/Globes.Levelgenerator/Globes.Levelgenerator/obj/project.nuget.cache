@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "dgSpecHash": "hUfq0xuRBow=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\jakob trost\\OneDrive\\Dokumente\\games.marfeyx.github.io\\Generator\\Globes.Levelgenerator\\Globes.Levelgenerator\\Globes.Levelgenerator.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\jakob trost\\.nuget\\packages\\skiasharp\\2.88.8\\skiasharp.2.88.8.nupkg.sha512",
+    "C:\\Users\\jakob trost\\.nuget\\packages\\skiasharp.nativeassets.macos\\2.88.8\\skiasharp.nativeassets.macos.2.88.8.nupkg.sha512",
+    "C:\\Users\\jakob trost\\.nuget\\packages\\skiasharp.nativeassets.win32\\2.88.8\\skiasharp.nativeassets.win32.2.88.8.nupkg.sha512"
+  ],
+  "logs": []
+}
